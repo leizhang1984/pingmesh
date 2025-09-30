@@ -82,9 +82,12 @@ func fPing(ipadd []string, port string) { // 获取目标ip,丢包率，ping平�
 	// 清空pingStructArray
 	pingStructArray = []Pingstruct{}
 	var wg sync.WaitGroup
+	localIP := GetLocalIp()
 	for _, ip := range ipadd {
-		wg.Add(1)
-		go runCommand("./multi_tcping.sh", ip, port, &wg)
+		if ip != localIP { // 过滤掉本机IP
+			wg.Add(1)
+			go runCommand("./multi_tcping.sh", ip, port, &wg)
+		}
 	}
 	wg.Wait()
 }
