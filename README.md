@@ -94,6 +94,8 @@ pingmesh架构：
 
 第2-1部分：部署服务器Server-安装MySQL
 
+**请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
+
 1. 我们先ssh到pingmesh-server，运行：sudo yum install mariadb-server -y
 
 2. 启动mariadb服务: sudo systemctl start mariadb
@@ -208,6 +210,8 @@ pingmesh架构：
 
 第3部分，部署客户端服务-安装tcping和go环境
 
+**请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
+
 1. 我们ssh登录到：pingmesh-client01
 
 2. 安装下面的步骤，安装tcping
@@ -257,4 +261,18 @@ pingmesh架构：
 
 第四部分，观察mariadb数据库里的tcping延迟数据
 
-1. 我们ssh到pingmesh-server服务上
+1. 我们ssh到pingmesh-server服务上，登录mariadb
+
+2. 切换数据库：use ping;
+
+3. 检查tcping延迟数据：select * from valu;
+   
+   可以看到src是源ip, dst是目标ip, loss丢包率，还有rttmin, rttavg, rttmax
+   
+   下图的日期列是tss，是个unix时间戳
+   
+   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/valu-1.png)
+
+4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
+
+5. 
