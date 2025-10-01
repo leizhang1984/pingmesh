@@ -50,8 +50,6 @@ pingmesh架构：
 
 1. 对tcping的延迟结果进行展示
 
-
-
 具体的配置步骤：
 
 第1部分：环境准备    
@@ -131,8 +129,8 @@ pingmesh架构：
     3 rows in set (0.000 sec)
 
 14. 最后关闭selinux: setenforce 0
-    
-    
+
+
 
 
 
@@ -162,20 +160,14 @@ pingmesh架构：
     wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetHostIp.go
    
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetResult.go
-   
-   
 
 8. 修改pingmesh-s-v1.1-GetHostIp.go里的代码，为pingmesh-server的内网ip
    
    lis,err := net.Listen("tcp","10.240.0.100:58098")               //监听端口
-   
-   
 
 9. 修改pingmesh-s-v1.1-GetResult.go里的代码，为pingmesh-server的内网ip
    
    lis,err := net.Listen("tcp","10.100.0.4:58099")        //监听端口
-   
-   
 
 10. 然后我们运行命令：go mod init pingmesh-server
 
