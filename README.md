@@ -20,7 +20,7 @@
    
    3. 在这个版本中，通过编写shell脚本，在multi_tcping.sh里执行多任务，对多个目标ip执行tcping测试
 
-3. 原来的代码会通过fping自己测试自己，即client ip是10.100.0.4, destination ip也是10.100.0.4。在这个版本里会进行判断，如果client ip = destination ip，则跳过
+3. 原来的代码会通过fping自己测试自己，即client ip是10.100.0.5, destination ip也是10.100.0.5。在这个版本里会进行判断，如果client ip = destination ip，则跳过
 
 
 
@@ -56,10 +56,16 @@ pingmesh架构：
 
 展示层：
 
+1. 对tcping的延迟结果进行展示
+
 
 
 
 
 具体的配置步骤：
 
-1. 请先创建1个Azure Virtual Network
+1. 请先创建1个Azure Virtual Network，并创建1个subnet。步骤略
+
+2. 创建4台虚拟机，操作系统为Rocky 9.4。步骤略：
+   
+   
