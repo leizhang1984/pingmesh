@@ -183,9 +183,7 @@ pingmesh架构：
     
     我们就可以观察到编译的结果：
     
-    
-    
-    ![](D:\Work\GitHub\pingmesh\pingmesh-image\go-build.png)
+    ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/go-build-server.png)
 
 14. 运行服务器端的2个服务
     
