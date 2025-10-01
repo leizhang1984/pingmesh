@@ -219,32 +219,42 @@ pingmesh架构：
    
    chmod +x tcping
 
-3. 按照下面的步骤，安装go环境
-   
-   wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
-   
-   sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+3. 下载和安装go环境，具体可以参考上面的内容，步骤略。
 
-4. 设置环境变量，具体步骤略。
+4. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
 
-5. 下载和安装go环境，具体可以参考上面的内容，步骤略。
-
-6. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
-
-7. 修改上面go代码里的2个func，都是如下
+5. 修改上面go代码里的2个func，都是如下
    
    conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
 
-8. 初始化go项目：
+6. 初始化go项目：
    
-   go mod init pingmesh-client01
+   go mod init pingmesh-client
    
    go get github.com/go-sql-driver/mysql
    
    go mod tidy
 
-9. 编译代码：go build pingmesh-c-v1.1.go
+7. 编译代码：go build pingmesh-c-v1.1.go
 
-10. 启动客户段服务：nohup ./pingmesh-c-v1.1 > output.log 2>&1 &
+8. 下载tcping的shell脚本：
+   
+   wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/multi_tcping.sh
 
-11. 在其他的客户端上，都执行上述的步骤。
+9. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
+
+![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/go-build-client.png)
+
+1. 启动客户段服务：nohup ./pingmesh-c-v1.1 > output.log 2>&1 &
+
+2. 在其他的客户端上，都执行上述的步骤。
+
+
+
+
+
+
+
+第四部分，观察mariadb数据库里的tcping延迟数据
+
+1. 我们ssh到pingmesh-server服务上
