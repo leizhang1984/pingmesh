@@ -87,7 +87,7 @@ func fPing(ipadd []string, port string) { // 获取目标ip,丢包率，ping平�
 }
 
 func pingHost() []string { // 得到所有host组的ip
-	conn, err := jsonrpc.Dial("tcp", "10.100.0.4:58098") // 172.19.129.11:58098换成自己服务器的ip
+	conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58098")     //10.240.0.100换成自己服务器的ip
 	if err != nil {
 		return nil
 	}
@@ -103,7 +103,7 @@ func pingHost() []string { // 得到所有host组的ip
 }
 
 func UpIp() { // 上传tcping的结果
-	conn, err := jsonrpc.Dial("tcp", "10.100.0.4:58099")
+	conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099")     //10.240.0.100换成自己服务器端的ip
 	if err != nil {
 		return
 	}

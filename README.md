@@ -58,11 +58,12 @@ pingmesh架构：
 
 2. 创建4台虚拟机，操作系统为Rocky 9.4。步骤略：
    
-   | 虚拟机名称             | 角色说明  | 内网IP地址       |
-   | ----------------- | ----- | ------------ |
-   | pingmesh-server   | 服务器   | 10.240.0.100 |
-   | pingmesh-client01 | 客户端01 | 10.240.0.101 |
-   | pingmesh-client02 | 客户端02 | 10.240.0.102 |
+   | 虚拟机名称             | 角色说明  | 内网IP地址       | 可用区 |
+   | ----------------- | ----- | ------------ | --- |
+   | pingmesh-server   | 服务器   | 10.240.0.100 | 1   |
+   | pingmesh-client01 | 客户端01 | 10.240.0.101 | 1   |
+   | pingmesh-client02 | 客户端02 | 10.240.0.102 | 2   |
+   | pingmesh-client03 | 客户端03 | 10.240.0.103 | 3   |
 
 3. 等待虚拟机创建完毕后，查看rocky 版本：
    
@@ -84,6 +85,8 @@ pingmesh架构：
    ROCKY_SUPPORT_PRODUCT_VERSION="9.4"
    REDHAT_SUPPORT_PRODUCT="Rocky Linux"
    REDHAT_SUPPORT_PRODUCT_VERSION="9.4"
+
+
 
 
 
@@ -118,7 +121,14 @@ pingmesh架构：
 
 12. 把pingmesh.sql导入到mariadb，mysql -u root -p ping < pingmesh.sql
 
-13. 确认导入表成功，MariaDB [ping]> show tables;
+13. 把客户端的3个内网ip地址，都插入到表host里：
+    
+    ```sql
+    use ping;
+    insert into host(host) values ('10.240.0.101'),('10.240.0.102'),('10.240.0.103');
+    ```
+
+14. 确认导入表成功，MariaDB [ping]> show tables;
     +----------------+
     | Tables_in_ping |
     +----------------+
@@ -128,7 +138,9 @@ pingmesh架构：
     +----------------+
     3 rows in set (0.000 sec)
 
-14. 最后关闭selinux: setenforce 0
+15. 最后关闭selinux: setenforce 0
+
+
 
 
 
@@ -189,3 +201,50 @@ pingmesh架构：
     
     nohup ./pingmesh-s-v1.1-GetResult > output.log 2>&1 &  
     nohup ./pingmesh-s-v1.1-GetHostIp > output.log 2>&1 &
+
+
+
+
+
+第3部分，部署客户端服务-安装tcping和go环境
+
+1. 我们ssh登录到：pingmesh-client01
+
+2. 安装下面的步骤，安装tcping
+   
+   yum install -y tcptraceroute bc
+   cd /usr/bin
+   
+   wget -O tcping https://soft.mengclaw.com/Bash/TCP-PING
+   
+   chmod +x tcping
+
+3. 按照下面的步骤，安装go环境
+   
+   wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
+   
+   sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+
+4. 设置环境变量，具体步骤略。
+
+5. 下载和安装go环境，具体可以参考上面的内容，步骤略。
+
+6. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
+
+7. 修改上面go代码里的2个func，都是如下
+   
+   conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
+
+8. 初始化go项目：
+   
+   go mod init pingmesh-client01
+   
+   go get github.com/go-sql-driver/mysql
+   
+   go mod tidy
+
+9. 编译代码：go build pingmesh-c-v1.1.go
+
+10. 启动客户段服务：nohup ./pingmesh-c-v1.1 > output.log 2>&1 &
+
+11. 在其他的客户端上，都执行上述的步骤。
