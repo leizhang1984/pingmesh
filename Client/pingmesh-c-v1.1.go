@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/rpc/jsonrpc"
 	"os"
@@ -36,7 +35,6 @@ func GetLocalIp() string { // 获取本地ip
 	var IP string
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
-		log.Println("Error getting interface addresses:", err)
 		os.Exit(1)
 	}
 	for _, address := range addrs {
@@ -44,7 +42,6 @@ func GetLocalIp() string { // 获取本地ip
 		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
 				IP = ipnet.IP.String()
-				log.Println("Local IP found:", IP)
 			}
 		}
 	}
@@ -54,13 +51,11 @@ func GetLocalIp() string { // 获取本地ip
 func runCommand(name string, ip string, port string, wg *sync.WaitGroup) { // 运行tcping脚本
 	defer wg.Done()
 	var pingstruct Pingstruct
-	log.Printf("Running command: %s %s %s\n", name, ip, port)
 	cmd := exec.Command(name, port, ip)
 	vv, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Println("Error running command:", err)
+		return
 	}
-	log.Println("Command output:", string(vv))
 	re := regexp.MustCompile(`(.*) +: xmt/rcv/%loss = (.*), min/avg/max = (.*)`)
 	submatchall := re.FindAllStringSubmatch(string(vv), -1)
 	for _, element := range submatchall {
@@ -75,7 +70,6 @@ func runCommand(name string, ip string, port string, wg *sync.WaitGroup) { // �
 		pingStructArray = append(pingStructArray, pingstruct)
 		mu.Unlock()
 	}
-	log.Println("Pingstruct list:", pingStructArray)
 }
 
 func fPing(ipadd []string, port string) { // 获取目标ip,丢包率，ping平均延迟
@@ -93,47 +87,41 @@ func fPing(ipadd []string, port string) { // 获取目标ip,丢包率，ping平�
 }
 
 func pingHost() []string { // 得到所有host组的ip
-	log.Println("Starting pingHost")
 	conn, err := jsonrpc.Dial("tcp", "10.100.0.4:58098") // 172.19.129.11:58098换成自己服务器的ip
 	if err != nil {
-		log.Fatalln("Dialing error:", err)
+		return nil
 	}
 
 	getiprequest := GetIpRequest{}
 	var getiprespone GetIpRespone
 	err = conn.Call("Ip.GetIp", getiprequest, &getiprespone)
 	if err != nil {
-		log.Fatalln("GetIp error: ", err)
+		return nil
 	}
 	conn.Close()
-	log.Println("Received IPs:", getiprespone.Hostip)
 	return getiprespone.Hostip
 }
 
 func UpIp() { // 上传tcping的结果
-	log.Println("Starting UpIp")
 	conn, err := jsonrpc.Dial("tcp", "10.100.0.4:58099")
 	if err != nil {
-		log.Fatalln("Dialing error:", err)
+		return
 	}
 
 	upip := UpIpArrayRequet{pingStructArray}
 	var rippr UpIpRespone
 	err = conn.Call("Ip.UpIp", upip, &rippr)
 	if err != nil {
-		log.Fatalln("Return error: ", err)
+		return
 	}
 	conn.Close()
-	log.Println("UpIp response received")
 }
 
 func main() {
-	log.Println("Starting program")
 	ticker := time.NewTicker(time.Second * 60) // 每一分钟执行执行一次
 	for {
 		select {
 		case <-ticker.C:
-			log.Println("Ticker triggered")
 			hostIPs := pingHost()
 			port := "22" // 定义端口
 			fPing(hostIPs, port) // 得到所有主机ip并ping
