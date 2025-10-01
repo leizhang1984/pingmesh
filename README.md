@@ -22,7 +22,7 @@
 
 pingmesh架构：
 
-![](D:\Work\GitHub\pingmesh\pingmesh-image\pingmesh-architecture.png)
+![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/pingmesh-architecture.png)
 
 主要分为三个角色：
 
@@ -167,7 +167,7 @@ pingmesh架构：
 
 9. 修改pingmesh-s-v1.1-GetResult.go里的代码，为pingmesh-server的内网ip
    
-   lis,err := net.Listen("tcp","10.100.0.4:58099")        //监听端口
+   lis,err := net.Listen("tcp","10.240.0.100:58099")        //监听端口
 
 10. 然后我们运行命令：go mod init pingmesh-server
 
@@ -182,6 +182,8 @@ pingmesh架构：
     go build pingmesh-s-v1.1-GetHostIp.go
     
     我们就可以观察到编译的结果：
+    
+    
     
     ![](D:\Work\GitHub\pingmesh\pingmesh-image\go-build.png)
 
