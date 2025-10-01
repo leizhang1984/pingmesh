@@ -271,8 +271,8 @@ pingmesh架构：
    
    下图的日期列是tss，是个unix时间戳
    
-   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/valu-1.png)
+   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-1.png)
 
 4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
-
-5. 
+   
+   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png)
