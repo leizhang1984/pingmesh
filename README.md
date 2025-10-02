@@ -565,7 +565,7 @@ root         876  0.0  0.0 1228648 5268 ?        Ssl  13:51   0:00 /software/pin
 [root@pingmesh-client01 software]#
 ```
 
-3. 客户端的multi_tcping.sh脚本，会在/tmp产生临时文件，临时文件一旦被统计完会自动删除
+3. 客户端的multi_tcping.sh脚本，会在/tmp产生psping统计数据的临时文件，临时文件一旦被统计完会自动删除
 
    ```
    [root@pingmesh-client01 tmp]# ll /tmp/
