@@ -4,29 +4,38 @@
 
 基于：[https://github.com/aprilmadaha/pingmesh](https://github.com/aprilmadaha/pingmesh%E3%80%82%E8%BF%9B%E8%A1%8C%E4%BA%86%E4%BF%AE%E6%94%B9%E3%80%82)， 进行了修改
 
+
+
 # 主要修改的内容有：
 
 1. 原来的代码是在客户端执行fping，这个版本是基于tcping
 
 2. 因为fping可以支持多个destination ip，如：
    
-   1. fping [10.100.0.5 10.100.0.6 -q -p 12000 -c 5]
+   ```
+   fping [10.100.0.5 10.100.0.6 -q -p 12000 -c 5]
+   ```
    
-   2. 返回： 10.100.0.5 : xmt/rcv/%loss = 5/5/0%,min/avg/max = 0.79/0.86/0.94
-      
+   1. 返回：
+   
+      ```
+      10.100.0.5 : xmt/rcv/%loss = 5/5/0%,min/avg/max = 0.79/0.86/0.94
       10.100.0.6 :xmt/rcv/%loss = 5/5/0%, min/avg/max = 0.01/0.01/0.02
+      ```
    
-   3. 在这个版本中，通过编写shell脚本，在multi_tcping.sh里执行多任务，对多个目标ip执行tcping测试
-
+   2. 在这个版本中，通过编写shell脚本，在multi_tcping.sh里执行多任务，对多个目标ip执行tcping测试
+   
 3. 原来的代码会通过fping自己测试自己，即client ip是10.100.0.5, destination ip也是10.100.0.5。在这个版本里会进行判断，如果client ip = destination ip，则跳过
 
 4. 把服务器端的2个go部署到crontab里，随OS启动
 
 5. 把客户端的服务部署到service里，随OS启动
 
-pingmesh架构：
+   
 
-![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/pingmesh-architecture.png)
+# pingmesh架构：
+
+![](https://github.com/leizhang1984/pingmesh/raw/main/pingmesh-image/pingmesh-architecture.png)
 
 主要分为三个角色：
 
@@ -102,28 +111,64 @@ pingmesh架构：
 
 **请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
 
-1. 我们先ssh到pingmesh-server，运行：sudo yum install mariadb-server -y
+1. 我们先ssh到pingmesh-server，运行：
 
-2. 启动mariadb服务: sudo systemctl start mariadb
+   ```
+   sudo yum install mariadb-server -y
+   ```
 
-3. 在系统启动时自动启动 MariaDB 服务：sudo systemctl enable mariadb
+2. 启动mariadb服务: 
 
-4. 初始化mariadb: mysql_secure_installation
+   ```
+   sudo systemctl start mariadb
+   ```
 
-5. Switch to unix_socket authentication [Y/n] n
+3. 在系统启动时自动启动 MariaDB 服务：
 
-6. Change the root password? [Y/n] y //这里使用密码为123456
+   ```
+   sudo systemctl enable mariadb
+   ```
+
+4. 初始化mariadb: 
+
+   ```
+   mysql_secure_installation
    
-   New password: 
+   Switch to unix_socket authentication [Y/n] n
+   
+   Change the root password? [Y/n] y 
+   
+   New password:   //这里使用密码为123456
    Re-enter new password: 
+   ```
+
+   
 
 7. 其他步骤略
 
-8. 安装完毕后，执行mysql -u root -p
+6. 安装完毕后，执行
 
-9. 先创建一个数据库，叫ping。命令是：MariaDB [(none)]> create database ping;
+   ```
+   mysql -u root -p
+   ```
 
-10. 退出mysql命令行：MariaDB [(none)]> exit;
+   
+
+7. 先创建一个数据库，叫ping。命令是：
+
+   ```
+   MariaDB [(none)]> create database ping;
+   ```
+
+   
+
+8. 退出mysql命令行：
+
+   ```
+   MariaDB [(none)]> exit;
+   ```
+
+   
 
 11. 下载数据库样例表：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh.sql
 
