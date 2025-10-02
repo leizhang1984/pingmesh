@@ -51,17 +51,18 @@
    
    1. pingmesh-s-v1.1-GetHostIp.go，用来从MariaDB数据库里读取host记录，并下发给客户端
    
-   2. pingmesh-s-v1.1-GetResult.go，允许客户端把测试结果进行上报，并保存到MariaDB数据表里
+   2. pingmesh-s-v1.1-GetResult.go，允许客户端把测试结果进行上报，并保存到MariaDB数据表Valu里
 
 **客户端：**
 
-1. pingmesh-c-v1.1.go，从服务器端获得客户端IP列表，通过执行multi_tcping.sh，来进行tcping测试，并把测试结果上报给服务器端
-
-2. multi_tcping.sh，执行60次tcping，并把结果进行汇总和统计(平均值，最大值，最小值)
+1. multi_tcping.sh，执行60次tcping，并把结果进行汇总和统计(平均值，最大值，最小值)
+2. pingmesh-c-v1.1.go，从服务器端获得客户端IP列表，通过执行multi_tcping.sh，来进行tcping测试，并把测试结果上报给服务器端
 
 **展示层：**
 
 1. 对tcping的延迟结果进行展示
+
+
 
 
 
@@ -154,7 +155,7 @@
 
    
 
-7. 先创建一个数据库，叫ping。命令是：
+7. 先创建一个数据库，叫ping (**不能用其他的database名称**)。命令是：
 
    ```
    MariaDB [(none)]> create database ping;
@@ -225,11 +226,13 @@
 
     
 
-17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
+17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启服务器
 
 
 
 ## 第2-2部分：部署服务器Server-安装和配置服务
+
+**请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
 
 1. 安装go，这里的go版本必须是1.21.0
 
@@ -276,7 +279,7 @@
    
    
    
-7. 把我们2个项目文件都下载到服务器上：
+7. 把我们2个项目文件都下载到服务器上，这里我保存的路径是/software
    
     ```
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetHostIp.go
@@ -286,7 +289,7 @@
    
    
    
-8. 修改pingmesh-s-v1.1-GetHostIp.go里的代码，为pingmesh-server的内网ip
+8. 修改pingmesh-s-v1.1-GetHostIp.go里的代码，为pingmesh-server的内网ip: 10.240.0.100
    
    ```
    lis,err := net.Listen("tcp","10.240.0.100:58098")               //监听端口
@@ -294,7 +297,7 @@
    
    
    
-9. 修改pingmesh-s-v1.1-GetResult.go里的代码，为pingmesh-server的内网ip
+9. 修改pingmesh-s-v1.1-GetResult.go里的代码，为pingmesh-server的内网ip: 10.240.0.100
    
    ```
    lis,err := net.Listen("tcp","10.240.0.100:58099")        //监听端口
@@ -348,10 +351,12 @@
     
 15. 在crontab文件中，添加以下2行：
 
-```
+```shell
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetHostIp >> /software/output.log 2>&1 &
 ```
+
+
 
 
 
@@ -377,18 +382,15 @@
 
 4. 安装下面的步骤，安装tcping
 
-   ```
+   ```shell
    yum install -y tcptraceroute bc
-   
    cd /usr/bin
-   
    wget -O tcping https://soft.mengclaw.com/Bash/TCP-PING
-   
    chmod +x tcping
    ```
-
    
-
+   
+   
 5. 下载和安装go环境，具体可以参考上面的内容，步骤略。
 
 6. 下载客户端程序：
@@ -399,7 +401,7 @@
 
    
 
-7. 修改上面go代码里的2个func，都是如下
+7. 修改上面go代码里的2个func，都是如下。10.240.0.100换成自己服务器端的ip
 
    ```
    conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
@@ -532,3 +534,82 @@
 
 
 ## 第5部分：如何检查错误：
+
+这里介绍一下常见的拍错步骤：
+
+### 客户端检查
+
+1. 请先确认客户端的服务已经启动
+
+```shell
+[root@pingmesh-client01 ~]# ps aux | grep "ping"
+root         876  0.0  0.0 1228648 5268 ?        Ssl  13:51   0:00 /software/pingmesh-c-v1.1
+```
+
+2. 客户端pingmesh-c-v1.1的output.log是否有报错
+
+```
+[root@pingmesh-client01 software]# cat output.log 
+[root@pingmesh-client01 software]#
+```
+
+3. 客户端的multi_tcping.sh脚本，会在/tmp产生临时文件，临时文件一旦被统计完会自动删除
+
+   ```
+   [root@pingmesh-client01 tmp]# ll /tmp/
+   total 36
+   -rw-------. 1 root root  138 Oct  2 03:01 crontab.6j37O1
+   drwx------  3 root root   17 Oct  2 13:50 systemd-private-1eccfe812c74408495ca78107b23f082-chronyd.service-Ad0tnd
+   drwx------  3 root root   17 Oct  2 13:50 systemd-private-1eccfe812c74408495ca78107b23f082-dbus-broker.service-ps8r7z
+   drwx------  3 root root   17 Oct  2 13:50 systemd-private-1eccfe812c74408495ca78107b23f082-systemd-logind.service-Xv8NkU
+   -rw-------  1 root root  346 Oct  2 05:29 tmp.2hiM0kE8fI
+   -rw-------  1 root root 2249 Oct  2 05:38 tmp.7SgH9ZRUxs
+   -rw-------  1 root root  346 Oct  2 05:29 tmp.bXgm11LaIZ
+   -rw-------  1 root root 2249 Oct  2 05:38 tmp.iscZ7oqGSU
+   -rw-------  1 root root 5190 Oct  2 14:01 tmp.lqnVa3OYYK
+   -rw-------  1 root root 5190 Oct  2 14:01 tmp.xFvA85cAxU
+   ```
+
+   
+
+### 服务器端检查：
+
+1. 请先确认服务器端的2个服务都已经启动
+
+   ```shell
+   [root@pingmesh-server ~]# ps aux | grep "ping"
+   root        1067  0.0  0.0   7124  1424 ?        S    13:51   0:00 /bin/sh -c sleep 60 && nohup /software/pingmesh-s-v1.1-GetHostIp >> /software/output.log 2>&1 &
+   root        1070  0.0  0.0   7124  1552 ?        S    13:51   0:00 /bin/sh -c sleep 60 && nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
+   root        1112  0.0  0.0 1230760 6936 ?        Sl   13:52   0:00 /software/pingmesh-s-v1.1-GetResult
+   root        1113  0.0  0.0 1231016 7324 ?        Sl   13:52   0:00 /software/pingmesh-s-v1.1-GetHostIp
+   root        1204  0.0  0.0   6408  2176 pts/0    S+   13:54   0:00 grep --color=auto ping
+   ```
+
+2. 检查output.log是否有客户端连接的日志
+
+   ```
+   [root@pingmesh-server software]# tail -f output.log 
+   2025/10/02 13:59:02 <nil>
+   2025/10/02 13:59:02 <nil>
+   new client in comming
+   2025/10/02 13:59:03 <nil>
+   2025/10/02 13:59:03 <nil>
+   2025/10/02 13:59:03 <nil>
+   new client in comming
+   2025/10/02 13:59:04 <nil>
+   2025/10/02 13:59:04 <nil>
+   2025/10/02 13:59:04 <nil>
+   new client in comming
+   2025/10/02 14:00:04 <nil>
+   2025/10/02 14:00:04 <nil>
+   2025/10/02 14:00:04 <nil>
+   new client in comming
+   2025/10/02 14:00:05 <nil>
+   2025/10/02 14:00:05 <nil>
+   2025/10/02 14:00:05 <nil>
+   
+   ```
+
+   
+
+   
