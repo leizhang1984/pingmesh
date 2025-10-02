@@ -355,7 +355,7 @@
 
 
 
-## 第3部分，部署客户端服务-安装tcping和go环境
+## 第3部分：部署客户端服务-安装tcping和go环境
 
 **请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
 
@@ -391,38 +391,73 @@
 
 5. 下载和安装go环境，具体可以参考上面的内容，步骤略。
 
-6. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
+6. 下载客户端程序：
+
+   ```
+   wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
+   ```
+
+   
 
 7. 修改上面go代码里的2个func，都是如下
 
+   ```
    conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
+   ```
+
+   
 
 8. 初始化go项目：
 
+   ```
    go mod init pingmesh-client
-
+   
    go get github.com/go-sql-driver/mysql
-
+   
    go mod tidy
+   ```
 
-9. 编译代码：go build pingmesh-c-v1.1.go
+   
+
+9. 编译代码：
+
+   ```
+   go build pingmesh-c-v1.1.go
+   ```
+
+   
 
 10. 下载tcping的shell脚本：
 
+   ```shell
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/multi_tcping.sh
+   ```
 
-11. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
+   
+
+11. 设置shell脚本的权限为可执行: 
+
+    ```
+    chmod +x multi_tcping.sh
+    ```
+
+    
 
 12. 设置客户端服务，让系统开机自动执行:
 
+    ```
     sudo vi /etc/systemd/system/pingmeshclient.service
+    ```
+
+    
 
 13. 设置服务配置文件
 
+    ```
     [Unit]
     Description=Pingmesh Service
     After=network.target
-
+    
     [Service]
     Type=simple
     User=root
@@ -432,35 +467,68 @@
     StandardOutput=file:/software/output.log
     StandardError=file:/software/output.log
     Restart=on-failure
-
+    
     [Install]
     WantedBy=multi-user.target
+    ```
 
-14. 重新加载：sudo systemctl daemon-reload
+    重新加载：
 
-15. 启动服务：
+    ```
+    sudo systemctl daemon-reload
+    ```
 
+    
+
+14. 启动服务：
+
+    ```
     sudo systemctl enable pingmeshclient.service
     sudo systemctl start pingmeshclient.service
+    ```
 
-16. 在其他的客户端上，都执行上述的步骤。
+    
 
-第四部分，观察mariadb数据库里的tcping延迟数据
+15. 在其他的客户端上，都执行上述的步骤。
+
+
+
+## 第4部分：观察mariadb数据库里的tcping延迟数据
 
 1. 我们ssh到pingmesh-server服务上，登录mariadb
 
-2. 切换数据库：use ping;
+2. 切换数据库：
 
-3. 检查tcping延迟数据：select * from valu;
+   ```sql
+   use ping;
+   ```
+
+   
+
+3. 检查tcping延迟数据：
+   
+   ```sql
+   select * from valu;
+   ```
    
    可以看到src是源ip, dst是目标ip, loss丢包率，还有rttmin, rttavg, rttmax
-   
+
    下图的日期列是tss，是个unix时间戳
    
-   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-1.png)
+   ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-1.png?raw=true)
+   
+4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：
 
-4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
+   ```sql
+   SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
+   ```
 
-![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png)
+   
 
-如何检查错误：
+![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png?raw=true)
+
+
+
+
+
+## 第5部分：如何检查错误：
