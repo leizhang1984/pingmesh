@@ -106,6 +106,8 @@
    
    
 
+------
+
 
 
 ## 第2-1部分：部署服务器Server-安装MySQL
@@ -227,6 +229,8 @@
     
 
 17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启服务器
+
+------
 
 
 
@@ -357,6 +361,8 @@
 ```
 
 
+
+------
 
 
 
@@ -495,6 +501,10 @@
 
 
 
+------
+
+
+
 ## 第4部分：观察mariadb数据库里的tcping延迟数据
 
 1. 我们ssh到pingmesh-server服务上，登录mariadb
@@ -530,6 +540,8 @@
 ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png?raw=true)
 
 
+
+------
 
 
 
