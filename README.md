@@ -529,7 +529,7 @@
    
    ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-1.png?raw=true)
    
-4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：
+4. 因为我这里所有的虚拟机(服务器+客户端)，都是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：
 
    ```sql
    SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
