@@ -170,9 +170,21 @@
 
    
 
-11. 下载数据库样例表：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh.sql
+9. 下载数据库样例表：
 
-12. 把pingmesh.sql导入到mariadb，mysql -u root -p ping < pingmesh.sql
+   ```bash
+   wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh.sql
+   ```
+
+   
+
+10. 把pingmesh.sql导入到mariadb，
+
+    ```
+    mysql -u root -p ping < pingmesh.sql
+    ```
+
+    
 
 13. 把客户端的3个内网ip地址，都插入到表host里：
     
@@ -181,7 +193,10 @@
     insert into host(host) values ('10.240.0.101'),('10.240.0.102'),('10.240.0.103');
     ```
 
-14. 确认导入表成功，MariaDB [ping]> show tables;
+14. 确认导入表成功，
+    
+    ```
+    MariaDB [ping]> show tables;
     +----------------+
     | Tables_in_ping |
     +----------------+
@@ -190,128 +205,224 @@
     | valu |
     +----------------+
     3 rows in set (0.000 sec)
+    ```
+    
+    
+    
+13. 暂时关闭selinux: 
 
-15. 暂时关闭selinux: setenforce 0
+    ```
+    setenforce 0
+    ```
 
-16. 永久关闭selinux: sudo vi /etc/selinux/config
+    
+
+14. 永久关闭selinux: 
+
+    ```
+    sudo vi /etc/selinux/config
+    ```
+
+    
 
 17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
 
-第2-2部分：部署服务器Server-安装和配置服务
+
+
+## 第2-2部分：部署服务器Server-安装和配置服务
 
 1. 安装go，这里的go版本必须是1.21.0
 
 2. 运行下面的命令进行下载：
    
+   ```
    wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
    
    sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
-
+   ```
+   
+   
+   
 3. 设置环境变量
    
+   ```
    vi ~/.bashrc
+   ```
+   
+   
+   
+4. 增加内容：
 
-4. 增加内容：export PATH=$PATH:/usr/local/go/bin
+    ```
+    export PATH=$PATH:/usr/local/go/bin
+    ```
 
-5. 使环境变量生效：source ~/.bashrc
+    
 
-6. 检查go版本：[root@pingmesh-server ~]# go version
+5. 使环境变量生效：
+
+    ```
+    source ~/.bashrc
+    ```
+
+    
+
+6. 检查go版本：
+   
+   ```
+   [root@pingmesh-server ~]# go version
    go version go1.21.0 linux/amd64
-
+   ```
+   
+   
+   
 7. 把我们2个项目文件都下载到服务器上：
    
-    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetHostIp.go
+    ```
+   wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetHostIp.go
    
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Server/pingmesh-s-v1.1-GetResult.go
-
+   ```
+   
+   
+   
 8. 修改pingmesh-s-v1.1-GetHostIp.go里的代码，为pingmesh-server的内网ip
    
+   ```
    lis,err := net.Listen("tcp","10.240.0.100:58098")               //监听端口
-
+   ```
+   
+   
+   
 9. 修改pingmesh-s-v1.1-GetResult.go里的代码，为pingmesh-server的内网ip
    
+   ```
    lis,err := net.Listen("tcp","10.240.0.100:58099")        //监听端口
+   ```
+   
+   
+   
+10. 然后我们运行命令：
 
-10. 然后我们运行命令：go mod init pingmesh-server
+    ```
+    go mod init pingmesh-server
+    ```
 
-11. 运行命令： go get github.com/go-sql-driver/mysql
+    
 
-12. 再执行：go mod tidy
+11. 运行命令：
+
+     ```
+      go get github.com/go-sql-driver/mysql
+     ```
+
+     
+
+12. 再执行：
+
+     ```
+     go mod tidy
+     ```
+
+     
 
 13. 编译2个go文件，执行命令：
     
+    ```
     go build pingmesh-s-v1.1-GetResult.go
     
     go build pingmesh-s-v1.1-GetHostIp.go
+    ```
     
     我们就可以观察到编译的结果：
-    
-    ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/go-build-server.png)
 
+    ![](https://github.com/leizhang1984/pingmesh/raw/main/pingmesh-image/go-build-server.png)
+    
 14. 把服务器端的2个服务，设置为开机自动启动
     
+    ```
     crontab -e
-
+    ```
+    
+    
+    
 15. 在crontab文件中，添加以下2行：
 
+```
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetHostIp >> /software/output.log 2>&1 &
+```
 
-第3部分，部署客户端服务-安装tcping和go环境
+
+
+## 第3部分，部署客户端服务-安装tcping和go环境
 
 **请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
 
 1. 我们ssh登录到：pingmesh-client01
 
-2. 暂时关闭selinux: setenforce 0
-   
-   永久关闭selinux: sudo vi /etc/selinux/config
-   
+2. 暂时关闭selinux: 
+
+   ```
+   setenforce 0
+   ```
+
+3. 永久关闭selinux: 
+
+   ```
+   sudo vi /etc/selinux/config
+   ```
+
    修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
 
-3. 安装下面的步骤，安装tcping
-   
+4. 安装下面的步骤，安装tcping
+
+   ```
    yum install -y tcptraceroute bc
+   
    cd /usr/bin
    
    wget -O tcping https://soft.mengclaw.com/Bash/TCP-PING
    
    chmod +x tcping
+   ```
 
-4. 下载和安装go环境，具体可以参考上面的内容，步骤略。
-
-5. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
-
-6. 修改上面go代码里的2个func，都是如下
    
+
+5. 下载和安装go环境，具体可以参考上面的内容，步骤略。
+
+6. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
+
+7. 修改上面go代码里的2个func，都是如下
+
    conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
 
-7. 初始化go项目：
-   
+8. 初始化go项目：
+
    go mod init pingmesh-client
-   
+
    go get github.com/go-sql-driver/mysql
-   
+
    go mod tidy
 
-8. 编译代码：go build pingmesh-c-v1.1.go
+9. 编译代码：go build pingmesh-c-v1.1.go
 
-9. 下载tcping的shell脚本：
-   
+10. 下载tcping的shell脚本：
+
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/multi_tcping.sh
 
-10. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
+11. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
 
-11. 设置客户端服务，让系统开机自动执行:
-    
+12. 设置客户端服务，让系统开机自动执行:
+
     sudo vi /etc/systemd/system/pingmeshclient.service
 
-12. 设置服务配置文件
-    
+13. 设置服务配置文件
+
     [Unit]
     Description=Pingmesh Service
     After=network.target
-    
+
     [Service]
     Type=simple
     User=root
@@ -321,18 +432,18 @@
     StandardOutput=file:/software/output.log
     StandardError=file:/software/output.log
     Restart=on-failure
-    
+
     [Install]
     WantedBy=multi-user.target
 
-13. 重新加载：sudo systemctl daemon-reload
+14. 重新加载：sudo systemctl daemon-reload
 
-14. 启动服务：
-    
+15. 启动服务：
+
     sudo systemctl enable pingmeshclient.service
     sudo systemctl start pingmeshclient.service
 
-15. 在其他的客户端上，都执行上述的步骤。
+16. 在其他的客户端上，都执行上述的步骤。
 
 第四部分，观察mariadb数据库里的tcping延迟数据
 
