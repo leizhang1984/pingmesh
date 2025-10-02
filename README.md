@@ -201,8 +201,8 @@ pingmesh架构：
 
 15. 在crontab文件中，添加以下2行：
 
-@reboot nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
-@reboot nohup /software/pingmesh-s-v1.1-GetHostIp > /software/output.log 2>&1 &
+@reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
+@reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetHostIp >> /software/output.log 2>&1 &
 
 
 
@@ -251,37 +251,15 @@ pingmesh架构：
 
 10. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
 
-11. 设置服务，让系统开机自动执行: /software/pingmesh-c-v1.1。我这里文件的路径为/software
+11. 设置客户端服务，让系统开机自动执行:
+    
+    crontab -e
 
-12. sudo vi /etc/systemd/system/pingmeshclient.service
+12. 在crontab文件中，添加下面的信息：
+    
+    @reboot sleep 60 && nohup /software/pingmesh-c-v1.1 > /software/output.log 2>&1 &
 
-13. 修改服务单元文件
-    
-    [Unit]
-    Description=Pingmesh Service
-    After=network.target
-    
-    [Service]
-    Type=simple
-    User=root
-    WorkingDirectory=/software
-    ExecStartPre=/bin/sleep 60
-    ExecStart=/software/pingmesh-c-v1.1
-    StandardOutput=file:/software/output.log
-    StandardError=file:/software/output.log
-    Restart=on-failure
-    
-    [Install]
-    WantedBy=multi-user.target
-
-14. 重新加载并重启服务
-    
-    sudo systemctl daemon-reload
-    
-    sudo systemctl enable pingmeshclient.service
-    sudo systemctl start pingmeshclient.service
-
-15. 在其他的客户端上，都执行上述的步骤。
+13. 在其他的客户端上，都执行上述的步骤。
 
 
 
