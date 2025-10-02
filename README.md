@@ -4,7 +4,7 @@
 
 基于：[https://github.com/aprilmadaha/pingmesh](https://github.com/aprilmadaha/pingmesh%E3%80%82%E8%BF%9B%E8%A1%8C%E4%BA%86%E4%BF%AE%E6%94%B9%E3%80%82)， 进行了修改
 
-主要修改的内容有：
+# 主要修改的内容有：
 
 1. 原来的代码是在客户端执行fping，这个版本是基于tcping
 
@@ -54,9 +54,11 @@ pingmesh架构：
 
 1. 对tcping的延迟结果进行展示
 
-具体的配置步骤：
 
-第1部分：环境准备    
+
+# 具体的配置步骤：
+
+## 第1部分：环境准备    
 
 1. 请先创建1个Azure Virtual Network，并创建1个subnet。步骤略
 
@@ -90,7 +92,9 @@ pingmesh架构：
    REDHAT_SUPPORT_PRODUCT="Rocky Linux"
    REDHAT_SUPPORT_PRODUCT_VERSION="9.4"
 
-第2-1部分：部署服务器Server-安装MySQL
+
+
+## 第2-1部分：部署服务器Server-安装MySQL
 
 **请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
 
