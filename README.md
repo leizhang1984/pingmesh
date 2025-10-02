@@ -86,12 +86,6 @@ pingmesh架构：
    REDHAT_SUPPORT_PRODUCT="Rocky Linux"
    REDHAT_SUPPORT_PRODUCT_VERSION="9.4"
 
-
-
-
-
-
-
 第2-1部分：部署服务器Server-安装MySQL
 
 **请确保客户端和服务器端的时区都是相同的。我这里的演示环境，所有的虚拟机都是UTC时区**
@@ -140,9 +134,11 @@ pingmesh架构：
     +----------------+
     3 rows in set (0.000 sec)
 
-15. 最后关闭selinux: setenforce 0
+15. 暂时关闭selinux: setenforce 0
 
+16. 永久关闭selinux: sudo vi /etc/selinux/config
 
+17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
 
 
 
@@ -199,12 +195,14 @@ pingmesh架构：
     
     ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/go-build-server.png)
 
-14. 运行服务器端的2个服务
+14. 把服务器端的2个服务，设置为开机自动启动
     
-    nohup ./pingmesh-s-v1.1-GetResult > output.log 2>&1 &  
-    nohup ./pingmesh-s-v1.1-GetHostIp > output.log 2>&1 &
+    crontab -e
 
+15. 在crontab文件中，添加以下2行：
 
+@reboot nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
+@reboot nohup /software/pingmesh-s-v1.1-GetHostIp > /software/output.log 2>&1 &
 
 
 
@@ -214,7 +212,13 @@ pingmesh架构：
 
 1. 我们ssh登录到：pingmesh-client01
 
-2. 安装下面的步骤，安装tcping
+2. 暂时关闭selinux: setenforce 0
+   
+   永久关闭selinux: sudo vi /etc/selinux/config
+   
+   修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
+
+3. 安装下面的步骤，安装tcping
    
    yum install -y tcptraceroute bc
    cd /usr/bin
@@ -223,15 +227,15 @@ pingmesh架构：
    
    chmod +x tcping
 
-3. 下载和安装go环境，具体可以参考上面的内容，步骤略。
+4. 下载和安装go环境，具体可以参考上面的内容，步骤略。
 
-4. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
+5. 下载客户端程序：wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/pingmesh-c-v1.1.go
 
-5. 修改上面go代码里的2个func，都是如下
+6. 修改上面go代码里的2个func，都是如下
    
    conn, err := jsonrpc.Dial("tcp", "10.240.0.100:58099") //10.240.0.100换成自己服务器端的ip
 
-6. 初始化go项目：
+7. 初始化go项目：
    
    go mod init pingmesh-client
    
@@ -239,21 +243,45 @@ pingmesh架构：
    
    go mod tidy
 
-7. 编译代码：go build pingmesh-c-v1.1.go
+8. 编译代码：go build pingmesh-c-v1.1.go
 
-8. 下载tcping的shell脚本：
+9. 下载tcping的shell脚本：
    
    wget https://raw.githubusercontent.com/leizhang1984/pingmesh/refs/heads/main/Client/multi_tcping.sh
 
-9. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
+10. 设置shell脚本的权限为可执行: chmod +x multi_tcping.sh
 
-![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/go-build-client.png)
+11. 设置服务，让系统开机自动执行: /software/pingmesh-c-v1.1。我这里文件的路径为/software
 
-1. 启动客户段服务：nohup ./pingmesh-c-v1.1 > output.log 2>&1 &
+12. sudo vi /etc/systemd/system/pingmeshclient.service
 
-2. 在其他的客户端上，都执行上述的步骤。
+13. 修改服务单元文件
+    
+    [Unit]
+    Description=Pingmesh Service
+    After=network.target
+    
+    [Service]
+    Type=simple
+    User=root
+    WorkingDirectory=/software
+    ExecStartPre=/bin/sleep 60
+    ExecStart=/software/pingmesh-c-v1.1
+    StandardOutput=file:/software/output.log
+    StandardError=file:/software/output.log
+    Restart=on-failure
+    
+    [Install]
+    WantedBy=multi-user.target
 
+14. 重新加载并重启服务
+    
+    sudo systemctl daemon-reload
+    
+    sudo systemctl enable pingmeshclient.service
+    sudo systemctl start pingmeshclient.service
 
+15. 在其他的客户端上，都执行上述的步骤。
 
 
 
@@ -272,11 +300,11 @@ pingmesh架构：
    下图的日期列是tss，是个unix时间戳
    
    ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-1.png)
-   
-   
-   
-   
 
 4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
 
 ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png)
+
+
+
+如何检查错误：
