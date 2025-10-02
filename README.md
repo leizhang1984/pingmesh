@@ -20,6 +20,10 @@
 
 3. 原来的代码会通过fping自己测试自己，即client ip是10.100.0.5, destination ip也是10.100.0.5。在这个版本里会进行判断，如果client ip = destination ip，则跳过
 
+4. 把服务器端的2个go部署到crontab里，随OS启动
+
+5. 把客户端的服务部署到service里，随OS启动
+
 pingmesh架构：
 
 ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/pingmesh-architecture.png)
@@ -140,10 +144,6 @@ pingmesh架构：
 
 17. 修改配置文件，找到 `SELINUX` 这一行，并将其值设置为 `disabled`。最后重启
 
-
-
-
-
 第2-2部分：部署服务器Server-安装和配置服务
 
 1. 安装go，这里的go版本必须是1.21.0
@@ -203,8 +203,6 @@ pingmesh架构：
 
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetResult > /software/output.log 2>&1 &
 @reboot sleep 60 && nohup /software/pingmesh-s-v1.1-GetHostIp >> /software/output.log 2>&1 &
-
-
 
 第3部分，部署客户端服务-安装tcping和go环境
 
@@ -283,10 +281,6 @@ pingmesh架构：
 
 15. 在其他的客户端上，都执行上述的步骤。
 
-
-
-
-
 第四部分，观察mariadb数据库里的tcping延迟数据
 
 1. 我们ssh到pingmesh-server服务上，登录mariadb
@@ -304,7 +298,5 @@ pingmesh架构：
 4. 因为我这里是UTC时区，如果我们想显示的日志是北京时区(UTC+8)，可以执行TSQL语句是：SELECT src, dst, loss, DATE_FORMAT(CONVERT_TZ(FROM_UNIXTIME(tss), '+00:00', '+08:00'), '%Y-%m-%d %H:%i:%s') AS tss_beijing_time, id, rttmin, rttavg, rttmax FROM valu;
 
 ![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/mariadb-valu-2.png)
-
-
 
 如何检查错误：
