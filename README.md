@@ -8,7 +8,7 @@
 
 # 主要修改的内容有：
 
-1. 原来的代码是在客户端执行fping，这个版本是基于tcping
+1. 原来的代码是在客户端执行fping，这个版本是基于tcping。tcping监听的端口是22。
 
 2. 因为fping可以支持多个destination ip，如：
    
