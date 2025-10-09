@@ -605,6 +605,8 @@ nohup python3 pingmesh.py > pingmeshpy.log 2>&1 &
 
 
 
+------
+
 
 
 ## 第6部分：如何检查错误：
