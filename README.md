@@ -545,7 +545,69 @@
 
 
 
-## 第5部分：如何检查错误：
+## 第5部分：WebUI展示：
+
+1. 我这里把WebUI展示的服务，部署在服务器端。当然你也可以单独部署一台Web UI
+2. WebUI需要依赖python，我们首先检查python的版本：
+
+```
+[root@pingmesh-server software]# python3 --version
+Python 3.9.18
+```
+
+3. 安装python包管理工具
+
+```
+yum install python3-pip -y
+```
+
+4. 安装python依赖
+
+```
+pip3 install flask
+pip3 install pymysql
+```
+
+5. 然后我们下载项目文件，其中WebUI层在目录：WebUI
+
+```
+git clone https://github.com/leizhang1984/pingmesh
+```
+
+6. 我们cd WebUI目录
+7. 修改pingmesh.py中的代码，因为我这里WebUI和服务器在同一台虚拟机里，所以host为localhost。你可以按照你的需要进行配置修改
+
+```
+conn = pymysql.connect(
+    host='localhost',
+    user='root',
+    password='123456',
+    db='ping',
+    charset='utf8'
+)
+```
+
+8. 运行WebUI服务
+
+```
+python3 pingmesh.py
+```
+
+如果需要后台运行，请执行：
+
+```
+nohup python3 pingmesh.py > pingmeshpy.log 2>&1 &
+```
+
+9. 然后我们打开浏览器，地址输入：http://[服务器端的ip]:9000/。显示效果如下：
+
+![](https://github.com/leizhang1984/pingmesh/blob/main/pingmesh-image/webui.png)
+
+
+
+
+
+## 第6部分：如何检查错误：
 
 这里介绍一下常见的拍错步骤：
 
