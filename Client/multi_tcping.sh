@@ -19,8 +19,8 @@ run_tcping() {
 
   # 执行 60 次 tcping
   for i in {1..60}; do
-      tcping -x 1 $TARGET $PORT >> $TEMP_FILE
-      sleep 1
+    tcping -x 1 $TARGET $PORT >> $TEMP_FILE
+    sleep 1
   done
 
   # 提取时间值并计算统计数据
